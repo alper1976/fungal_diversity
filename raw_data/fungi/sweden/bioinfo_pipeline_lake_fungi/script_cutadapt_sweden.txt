@@ -1,0 +1,37 @@
+############################ 1) CUTADAPT ####################
+# To find and remove primer sequences. Based on initial check with DADA2 (see details below), specific for ITS regions (hight lenght variability),
+# We need to trimm also FWD.RCin Reverse.Reads,and REV.RC in Forward.reads!
+# In adition, filter sequences longer than 200bp (--minimum-length 200)
+
+#salloc --ntasks=1 --mem-per-cpu=4G --time=00:30:00 --qos=devel --account=nn9744k
+
+
+### Load the corresponding cutadapt module:
+module load cutadapt/1.18-foss-2018b-Python-3.6.6
+
+
+RAWDIR=/cluster/projects/nn9745k/01_raw_data/02_hundred_lakes/fungi/160321_M00485_0262_000000000-AMK63 # change to location of raw data from NSC
+RESDIR=/cluster/projects/nn9745k/02_results/02_hundred_lakes/fungi # change where you want worked data is.
+
+# transfer files to scratch
+
+mkdir $RESDIR/AdaptersRemoved
+
+cd $RAWDIR/
+
+#For fastq.qz files
+# RUN CUTADAPT: 
+
+for f in *.fastq.gz
+    do
+        FILE=${f#$DIRS}
+        if [[ $FILE =~ R1 ]] #If file name contains R1
+        then
+            cutadapt -g AACCAWCGATGAAGAACGCAG -a GCATATYARTAAGCGGAGGATT -G AATCCTCCGCTTAYTRATATGC -A CTGCGTTCTTCATCGWTGGTT --times 2 -o $RESDIR/AdaptersRemoved/$FILE -p $RESDIR/AdaptersRemoved/${FILE//R1/R2} --discard-untrimmed --minimum-length 200 $FILE ${FILE//R1/R2}
+
+        fi
+    done
+
+#############################
+
+## This was relatively quick: around 1h interactively
